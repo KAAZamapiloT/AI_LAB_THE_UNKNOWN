@@ -1,6 +1,6 @@
 ﻿# ==============================================================================
-# Greedy Best-First Search with Detailed PUSH/POP Tracing
-# For academic presentation and notebook transcription.
+# CORRECTED Greedy Best-First Search with Detailed Tracing
+# - Fixes the bug in path reconstruction to show the final path.
 #
 # Date: 19 August 2025
 # ==============================================================================
@@ -22,6 +22,8 @@ def reconstruct_path(parent, start, goal):
 def calculate_path_cost(path, graph_costs):
     """Helper function to calculate the total cost of the found path."""
     cost = 0
+    if len(path) < 2:
+        return 0
     for i in range(len(path) - 1):
         u = path[i]
         v = path[i + 1]
@@ -49,17 +51,11 @@ def greedy_trace_push_pop(graph, graph_costs, coordinates, start, goal, heuristi
     Performs a Greedy Best-First Search and prints a detailed trace describing
     each PUSH and POP operation on the Priority Queue.
     """
-    # 1. Initialize data structures
-    # The frontier stores tuples of (heuristic_value, node_name)
     h_start = heuristic_func(start, goal, coordinates)
     frontier_pq = [(h_start, start)]
-
-    explored_set = set()
     parent = {start: None}
-
-    # A set to keep track of items in the frontier for faster lookups
+    explored_set = set()
     frontier_set = {start}
-
     step = 0
 
     print("=" * 80)
@@ -71,17 +67,9 @@ def greedy_trace_push_pop(graph, graph_costs, coordinates, start, goal, heuristi
         print("\n" + f"--- Step {step} ---")
 
         print(f"Frontier (Priority Queue ordered by h): {sorted(frontier_pq)}")
-
-        # POP the node with the lowest heuristic value
         current_h, current_node = heapq.heappop(frontier_pq)
         frontier_set.remove(current_node)
-
         print(f"Action: POP node '{current_node}' with h={current_h:.2f} (the lowest heuristic in the frontier).")
-        print(f"Frontier after action:  {sorted(frontier_pq)}")
-
-        if current_node in explored_set:
-            print(f"Note: Node '{current_node}' has already been explored. Skipping.")
-            continue
 
         if current_node == goal:
             print("\n" + "-" * 80)
@@ -100,9 +88,11 @@ def greedy_trace_push_pop(graph, graph_costs, coordinates, start, goal, heuristi
         print("Discovering neighbors...")
         for neighbor in sorted(graph[current_node]):
             if neighbor not in explored_set and neighbor not in frontier_set:
-                parent[neighbor] = neighbor
+                # =====================================================
+                # THIS IS THE CORRECTED LINE:
+                parent[neighbor] = current_node
+                # =====================================================
                 h_neighbor = heuristic_func(neighbor, goal, coordinates)
-                # PUSH the new (heuristic, neighbor) pair to the priority queue
                 heapq.heappush(frontier_pq, (h_neighbor, neighbor))
                 frontier_set.add(neighbor)
                 print(f"  -> Found new node '{neighbor}'. PUSH to queue with h={h_neighbor:.2f}.")
@@ -122,7 +112,6 @@ if __name__ == "__main__":
         'L': (0, 3), 'M': (4, 3), 'N': (8, 3), 'O': (2, 2), 'P': (5, 2), 'Q': (10, 3),
         'R': (2, 0), 'T': (8, 0)
     }
-
     graph_bfs = {
         'S': ['D'], 'A': ['B', 'D', 'H'], 'B': ['A', 'C', 'K'], 'C': ['B', 'E'],
         'D': ['S', 'A', 'F', 'I'], 'E': ['C', 'K'], 'F': ['D', 'L'], 'G': ['N', 'T'],
@@ -131,7 +120,6 @@ if __name__ == "__main__":
         'N': ['H', 'K', 'Q', 'G'], 'O': ['L', 'R'], 'P': ['M'], 'Q': ['K', 'N'],
         'R': ['O', 'T'], 'T': ['G', 'R']
     }
-
     graph_with_costs = {
         'S': [('D', 25)], 'A': [('B', 11), ('D', 32), ('H', 36)],
         'B': [('A', 11), ('C', 24), ('K', 42)], 'C': [('B', 24), ('E', 40)],
@@ -145,6 +133,5 @@ if __name__ == "__main__":
         'T': [('G', 32), ('R', 52)]
     }
 
-    # CHOOSE YOUR HEURISTIC HERE
-    # To run with Euclidean, change the last argument to: calculate_euclidean_heuristic
+    # Running with Manhattan Heuristic as specified in the original code
     greedy_trace_push_pop(graph_bfs, graph_with_costs, node_coordinates, 'S', 'G', calculate_manhattan_heuristic)
