@@ -1,0 +1,1 @@
+﻿Artificial intelligence is a fascinating field. The A* search algorithm is used for pathfinding. It combines the benefits of Dijkstra's algorithm and greedy best-first search.

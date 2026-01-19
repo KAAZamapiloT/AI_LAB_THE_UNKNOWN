@@ -1,0 +1,1 @@
+﻿Machine learning is a subset of AI. The A* search algorithm is used for pathfinding. It is known for being both complete and optimal.
